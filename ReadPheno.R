@@ -32,21 +32,40 @@ write.table(Pheno_neuroticism_out,paste("Z:./Data Analysis/Yu Fang/HRS/Phenotype
 PhenoPrep("neuroticism")
 
 #### base ####
-base_mdd=read.table("Z:././././././Data Analysis/Yu Fang/HRS/PGC/pgc.mdd.2012-04/pgc.mdd.clump.2012-04.txt",header=T)
-base_mdd$seq=seq(from=1,to=nrow(base_mdd))
-ped_mdd=data.frame(Chromosome=base_mdd$hg18chr,chromstart=base_mdd$bp-1,chromend=base_mdd$bp,snpid=base_mdd$snpid,seq=base_mdd$seq)
-ped_mdd$Chromosome=paste("chr",ped_mdd$Chromosome,sep="")
-ped_mdd$chromstart <- as.integer(ped_mdd$chromstart)
-ped_mdd$chromend<- as.integer(ped_mdd$chromend)
-write.table(ped_mdd,"Z:././././././Data Analysis/Yu Fang/HRS/PGC/pgc.mdd.2012-04/mdd.ped",col.names=F,row.names=F,quote=F)
-write.table(ped_mdd$snpid,"Z:/Data Analysis/Yu Fang/HRS/PGC/pgc.mdd.2012-04/mdd.rs",col.names = F,row.names=F,quote = F)
 # geno map
 genmap<-read.table("Z:/Data Analysis/Yu Fang/HRS/GeneImputed/HRS_auto.map")
-# liftover ran in linux #
-lift_mdd=read.table("Z:/Data Analysis/Yu Fang/HRS/PGC/pgc.mdd.2012-04/mdd_hg19.ped")
-new_mdd=merge(lift_mdd,base_mdd,by.x="V4",by.y="seq")
-new_mdd$snpid=paste(as.character(new_mdd$hg18chr),":",as.character(new_mdd$V3),sep="")
-new_mdd$bp=new_mdd$V3
-new_mdd=new_mdd[c("snpid","hg18chr","bp","a1","a2","or","se","pval")]
-new_mdd=rename(new_mdd,c("snpid"="SNP","hg18chr"="CHR","bp"="BP","a1"="A1","a2"="A2","or"="OR","se"="SE","pval"="P"))
-write.table(new_mdd,"Z:/Data Analysis/Yu Fang/HRS/PGC/pgc.mdd.2012-04/base_mdd.assoc",quote=FALSE,row.names=FALSE,col.names=TRUE)
+# read base
+base_ds<-read.table("Z:././././././Data Analysis/Yu Fang/HRS/PGC/pgc.mdd.2012-04/pgc.mdd.clump.2012-04.txt",header=T)
+base_col<-c("hg18chr","bp","snpid")
+BasePrep=function(base_ds,base_col){
+  base_ds$seq=seq(from=1,to=nrow(base_ds))
+  ped_ds=data.frame(Chromosome=base_ds[,paste(base_col[1])],chromstart=base_ds[,paste(base_col[2])]-1,chromend=base_ds[,paste(base_col[2])],snpid=base_ds[,paste(base_col[3])],seq=base_ds$seq)
+  ped_ds$Chromosome=paste("chr",ped_ds$Chromosome,sep="")
+  ped_ds$chromstart <- as.integer(ped_ds$chromstart)
+  ped_ds$chromend<- as.integer(ped_ds$chromend)
+  write.table(ped_ds,"Z:././././././Data Analysis/Yu Fang/HRS/PGC/pgc.mdd.2012-04/mdd.ped",col.names=F,row.names=F,quote=F)
+  write.table(ped_ds$snpid,"Z:/Data Analysis/Yu Fang/HRS/PGC/pgc.mdd.2012-04/mdd.rs",col.names = F,row.names=F,quote = F)
+}
+BasePrep(base_ds,base_col)
+# pause: liftover ran in linux #
+# after lift
+lift_ds<-read.table("Z:/Data Analysis/Yu Fang/HRS/PGC/pgc.mdd.2012-04/mdd_hg19.ped")
+lift_cols<-c("snpid","hg18chr","bp","a1","a2","or","se","pval")
+outpath_ds<-"Z:/Data Analysis/Yu Fang/HRS/PGC/pgc.mdd.2012-04/base_mdd.assoc"
+LiftedPrep=function(lift_ds){
+  new_ds=merge(lift_ds,base_ds,by.x="V4",by.y="seq")
+  new_ds$bp=new_ds$V3
+  commonsnp=intersect(new_ds$snpid,genmap$V2)
+  print(nrow(new_ds))
+  print(length(commonsnp))
+  new_ds=new_ds[lift_cols]
+  new_ds=rename(new_ds,c(lift_cols[1]="SNP",lift_cols[2]="CHR",lift_cols[3]="BP",lift_cols[4]="A1",lift_cols[5]="A2",lift_cols[6]="OR",lift_cols[7]="SE",lift_cols[8]="P"))
+  write.table(new_ds,outpath_ds,quote=FALSE,row.names=FALSE,col.names=TRUE)
+}
+LiftedPrep(lift_ds)
+
+
+
+
+
+
