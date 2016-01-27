@@ -20,17 +20,25 @@ testvar=c(targetpheno)
 pheno_use=pheno[c("hhidpn","LOCAL_ID","Age","Gender","Hispanic","Race","Education",testvar)]
 # merge 
 AnnoGenfamPheno<-merge(AnnoGenfam,pheno_use,by.x="local.id",by.y="LOCAL_ID")
-# pick EAonly
+# pick by race
 AnnoGenfamPheno_EA<-AnnoGenfamPheno[which(AnnoGenfamPheno$Race==unique(AnnoGenfamPheno$Race)[1]),]
+AnnoGenfamPheno_AA<-AnnoGenfamPheno[which(AnnoGenfamPheno$Race==unique(AnnoGenfamPheno$Race)[3]),]
 # pick pheno
-Pheno_picked<-AnnoGenfamPheno_EA[which(!is.na(AnnoGenfamPheno_EA[,paste(targetpheno)])),]
+Pheno_EA_picked<-AnnoGenfamPheno_EA[which(!is.na(AnnoGenfamPheno_EA[,paste(targetpheno)])),]
+Pheno_AA_picked<-AnnoGenfamPheno_AA[which(!is.na(AnnoGenfamPheno_AA[,paste(targetpheno)])),]
 # output
-Pheno_picked_out<-Pheno_picked[c("V2",targetpheno,PCcols)]
-names(Pheno_picked_out)[1]<-"ID"
-write.table(Pheno_neuroticism_out,paste("Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_",targetpheno,".pheno",sep=""),quote=F,row.names=F,col.names = T)
-Pheno_picked_out_covary<-Pheno_picked[c("V2",PCcols)]
-names(Pheno_picked_out_covary)[1]="IID"
-write.table(Pheno_picked_out_covary,"Z:/Data Analysis/Yu Fang/HRS/Phenotype/Top10PC.covary",quote=F,row.names=F,col.names = T)
+Pheno_EA_picked_out<-Pheno_EA_picked[c("V2",targetpheno)]
+Pheno_AA_picked_out<-Pheno_AA_picked[c("V2",targetpheno)]
+names(Pheno_EA_picked_out)[1]<-"ID"
+names(Pheno_AA_picked_out)[1]<-"ID"
+write.table(Pheno_EA_picked_out,paste("Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_",targetpheno,".pheno",sep=""),quote=F,row.names=F,col.names = T)
+write.table(Pheno_AA_picked_out,paste("Z:/Data Analysis/Yu Fang/HRS/Phenotype/AA_",targetpheno,".pheno",sep=""),quote=F,row.names=F,col.names = T)
+Pheno_EA_picked_out_covary<-Pheno_EA_picked[c("V2",PCcols)]
+Pheno_AA_picked_out_covary<-Pheno_AA_picked[c("V2",PCcols)]
+names(Pheno_EA_picked_out_covary)[1]="IID"
+names(Pheno_AA_picked_out_covary)[1]="IID"
+write.table(Pheno_EA_picked_out_covary,"Z:/Data Analysis/Yu Fang/HRS/Phenotype/Top10PC_EA.covary",quote=F,row.names=F,col.names = T)
+write.table(Pheno_AA_picked_out_covary,"Z:/Data Analysis/Yu Fang/HRS/Phenotype/Top10PC_AA.covary",quote=F,row.names=F,col.names = T)
 }
 PhenoPrep("neuroticism")
 
