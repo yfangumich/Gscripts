@@ -2,17 +2,13 @@ library(batch)
 start.time <- proc.time()[3]
 options(echo = FALSE)
 options(warn=-1)
-
 cat(" ################################# \n # \n # \n # \n # \n # PRSice: Polygenic Risk Score software \n # \n # Jack Euesden, Cathryn M. Lewis, Paul F. O'Reilly 2014 \n # \n # \n # If you use PRSice in published work, please cite: \n # \n # \"PRSice: Polygenic Risk Score software\" \n # Euesden, Lewis, O'Reilly, Bioinformatics (2015) 31 (9):1466-1468 \n # \n # \n # \n #  \n ################################# \n")
-
-
-
 #################################
 #
 #  Default options
 #
 #################################
-								
+
 ## essential
 target <-  NA
 base <-   NA
@@ -165,10 +161,30 @@ if(dosage){
 cat(" ################################# \n # \n #  Read in Command Line Arguments & interpret \n # \n ################################# \n")
 
 ##### manually input the customized options ####
-#parseCommandArgs(evaluate=T)
-plink <- "C:/Users/yfang/Documents/work/Gene/Software/plink-1.07-x86_64/plink"
+
+# frequently changed
 base <- "Z:/Data Analysis/Yu Fang/HRS/Public/pgc.mdd.2012-04/base_mdd.assoc"
+#base <- "Z:/Data Analysis/Yu Fang/HRS/Public/GPC-2.NEUROTICISM/GPC_neuroticism.assoc"
+
 pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/AA_neuroticism.pheno"
+#pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_CIDISeverity.pheno"
+#pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/AA_CIDIDepression.pheno"
+#pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/AA_CIDIADSeverity.pheno"
+
+target.phenotypes <- "neuroticism"
+#target.phenotypes <- "CIDISeverity"
+#target.phenotypes <- "CIDIDepression"
+#target.phenotypes <- c("AnhedoniaSeverity","DysphoriaSeverity")
+
+target.phenotypes.binary <- F
+
+user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/Top10PC_AA.covary"
+
+wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-01-27_mdd_neuroticism_AA"
+#wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-02-17_neuroticism_scores_pruned"
+
+# non-frequently changed
+plink <- "C:/Users/yfang/Documents/work/Gene/Software/plink-1.07-x86_64/plink"
 dosage <- T
 target <- "/home/srijan_lab/yfang/HRS/GeneImputed/phg000264.v1.CIDR_HRS.genotype-imputed-data.c1/HRS_auto.gprobs"
 dos.sep.fam <- "Z:/Data Analysis/Yu Fang/HRS/GeneImputed/HRS_imputed.fam"
@@ -181,19 +197,15 @@ debug.mode <- T
 clump.snps <- F
 prune.snps <- F
 multiple.target.phenotypes <- T
-target.phenotypes <- "neuroticism"
-target.phenotypes.binary <- F
 remove.mhc <- T
 score.at.1 <- F
 quantiles <- T
 print.time <- T
 covary <- T
-user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/Top10PC_AA.covary"
-covariates <- "EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10"
+covariates <- "EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10,Age,Gender"
 cleanup <- F
 allow.no.sex <- T
 barchart.levels <- "0.00001, 0.0001, 0.001, 0.01, 0.1"
-wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/mdd_neuroticism_AA"
 
 # manually input end
 
@@ -247,8 +259,10 @@ if(multiple.base.phenotypes){
 }
 
 if(multiple.target.phenotypes){
-  target.phenotypes <- strsplit(gsub(" ", "", target.phenotypes), split=",")[[1]]  
-  target.phenotypes.binary  <- as.logical(strsplit(gsub(" ", "", target.phenotypes.binary), split=",")[[1]])
+  #target.phenotypes <- strsplit(gsub(" ", "", target.phenotypes), split=",")[[1]]   # FY: this doesn't seem right...
+  #target.phenotypes <- strsplit(gsub(" ", "", target.phenotypes), split=",")
+  #target.phenotypes.binary  <- as.logical(strsplit(gsub(" ", "", target.phenotypes.binary), split=",")[[1]]) # FY: this doesn't seem right...
+  #target.phenotypes.binary  <- as.logical(strsplit(gsub(" ", "", target.phenotypes.binary), split=",")) 
   if(is.na(target.phenotypes)){
     cat("ERROR: Please select target phenotypes to use, using target.phenotypes \n or set multiple.target.phenotypes F. \n Quitting")
     quit()

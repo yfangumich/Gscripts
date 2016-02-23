@@ -908,12 +908,12 @@ print(is.na(user.covariate.file))
 	      system(paste( plink, "        --noweb --bfile non_synonymous_snps_only_",chrnum," --flip flip_list.txt   --make-bed   --out flipped_target_",chrnum, sep = ""))
 	    }
 	  }
-	
-	  system("rm rangelist.txt", ignore.stdout=T,ignore.stderr=T)
+	  
+	  #system("rm rangelist.txt", ignore.stdout=T,ignore.stderr=T)
 	  if(!fastscore){
-	    system( capture.output(cat("awk 'BEGIN{ for (i=",slower,"; i <= ",supper,"; i*=",sinc,") printf(\"%.",ceiling(-log10(sinc)),"f\\n\", i); }' | awk '{print $1,0,$1}' > 	rangelist.txt \n ", sep=""))[1])
-	    lists <- read.table("rangelist.txt", head = F)
-	    system( capture.output(cat("awk 'BEGIN{ for (i=",slower,"; i <= ",supper,"; i*=",sinc,") printf(\"%.",ceiling(-log10(sinc)),"f\\n\", i); }' |  awk '{OFS=\".\"}			{print \"PROFILES\",$1,\"profile\"}' > profile_list 	\n ", sep = ""))[1])
+	    #system( capture.output(cat("awk 'BEGIN{ for (i=",slower,"; i <= ",supper,"; i*=",sinc,") printf(\"%.",ceiling(-log10(sinc)),"f\\n\", i); }' | awk '{print $1,0,$1}' > 	rangelist.txt \n ", sep=""))[1])
+	    lists <- read.table("rangelist.txt", head = F) # FY: directly read the thresholds from file if there are not many of them
+	    #system( capture.output(cat("awk 'BEGIN{ for (i=",slower,"; i <= ",supper,"; i*=",sinc,") printf(\"%.",ceiling(-log10(sinc)),"f\\n\", i); }' |  awk '{OFS=\".\"}			{print \"PROFILES\",$1,\"profile\"}' > profile_list 	\n ", sep = ""))[1])
 	  }
 	  if(fastscore){
 	    write.table(data.frame(barchart.levels, rep(0, times=length(barchart.levels)), barchart.levels), "rangelist.txt", col.names = F, row.names = F, quote = F)
@@ -941,9 +941,9 @@ print(is.na(user.covariate.file))
 	}  
 	  
 	if(dosage){
-	  system("rm rangelist.txt", ignore.stdout=T,ignore.stderr=T)
+	  #system("rm rangelist.txt", ignore.stdout=T,ignore.stderr=T)
 	  if(!fastscore){
-	    system( capture.output(cat("awk 'BEGIN{ for (i=",slower,"; i <= ",supper,"; i*=",sinc,") printf(\"%.",ceiling(-log10(sinc)),"f\\n\", i); }' | awk '{print $1,0,$1}' > 	  rangelist.txt \n ", sep=""))[1])
+	    #system( capture.output(cat("awk 'BEGIN{ for (i=",slower,"; i <= ",supper,"; i*=",sinc,") printf(\"%.",ceiling(-log10(sinc)),"f\\n\", i); }' | awk '{print $1,0,$1}' > 	  rangelist.txt \n ", sep=""))[1])
 	    lists <- read.table("rangelist.txt", head = F)
 	    write.table(data.frame(paste("PROFILES.S", seq(1, length(lists$V1), 1), ".profile", sep = "")), "profile_list", col.names=F, row.names=F,quote=F)	
 	  }
@@ -1154,7 +1154,8 @@ base.gwas <- base.gwas[base.gwas$A1 == targ.gwas$A1 | base.gwas$A1 == targ.gwas$
 
 
 #high.res <- seq(slower, supper, sinc)
-high.res <- slower*sinc^(0:log(supper/slower,sinc))
+#high.res <- slower*sinc^(0:log(supper/slower,sinc))
+hight.res <- c(0.00001,0.0001,0.001,0.01,0.1,0.2,0.3,0.4,0.5) # FY: mei cuo wo shi liu mang
 pval.out <- as.vector(1)
 r2.out <- as.vector(1)
 nsnps <- as.vector(1)

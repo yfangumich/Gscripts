@@ -4,18 +4,29 @@ library(plyr)
 ## Phenotypes
 pheno<-read.spss("Z:/Data Analysis/Yu Fang/HRS/Phenotype/YuSrijanVars.sav",to.data.frame = TRUE)
 pheno$LOCAL_ID<-as.integer(as.character(pheno$LOCAL_ID))
+#### CIDI ####
+CIDI=read.spss("Z:././././././Data Analysis/Yu Fang/HRS/Phenotype/MasterCIDI_3subscales.sav",to.data.frame = TRUE)
+CIDI=CIDI[c("hhidpn","CIDIDepression","dysphoriaEVER","anhedoniaEVER","DysphoriaSeverity","AnhedoniaSeverity","CIDISeverity")]
+#### Height ####
+Height=read.spss("Z:./././././Data Analysis/Yu Fang/HRS/Phenotype/Height.sav",to.data.frame=TRUE)
+#### merge CIDI to pheno ####
+pheno<-merge(pheno,CIDI,by="hhidpn",all.x=TRUE,all.y=TRUE)
+#### merge Height to pheno ####
+pheno<-merge(pheno,Height,by="hhidpn",all.y=TRUE)
+democols<-c("Age","Gender")
 ## Principal Components
 PCs<-read.csv("Z:/Data Analysis/Yu Fang/HRS/GenoInfo/Principal_components.csv")
 PCcols<-c("EV1","EV2","EV3","EV4","EV5","EV6","EV7","EV8","EV9","EV10")
 ## geno fam
-genfam<-read.table("Z:/Data Analysis/Yu Fang/HRS/GeneImputed/HRS_chr22_awk.fam")
+genfam<-read.table("Z:/Data Analysis/Yu Fang/HRS/GeneImputed/HRS_imputed.fam")
 ## annotation
 Anno<-read.csv("Z:/Data Analysis/Yu Fang/HRS/GenoInfo/Sample_annotation.csv")
 Annosub<-Anno[c("subjectID","local.id")]
 AnnoGenfam<-merge(genfam,Annosub,by.x="V2",by.y="subjectID")
 AnnoGenfam<-merge(AnnoGenfam,PCs,by.x="V2",by.y="subjectID")
+
 ## phenotype file preparation
-PhenoPrep=function(targetpheno){
+PhenoPrep=function(targetpheno,filename){
 testvar=c(targetpheno)
 pheno_use=pheno[c("hhidpn","LOCAL_ID","Age","Gender","Hispanic","Race","Education",testvar)]
 # merge 
@@ -31,50 +42,87 @@ Pheno_EA_picked_out<-Pheno_EA_picked[c("V2",targetpheno)]
 Pheno_AA_picked_out<-Pheno_AA_picked[c("V2",targetpheno)]
 names(Pheno_EA_picked_out)[1]<-"ID"
 names(Pheno_AA_picked_out)[1]<-"ID"
-write.table(Pheno_EA_picked_out,paste("Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_",targetpheno,".pheno",sep=""),quote=F,row.names=F,col.names = T)
-write.table(Pheno_AA_picked_out,paste("Z:/Data Analysis/Yu Fang/HRS/Phenotype/AA_",targetpheno,".pheno",sep=""),quote=F,row.names=F,col.names = T)
-Pheno_EA_picked_out_covary<-Pheno_EA_picked[c("V2",PCcols)]
-Pheno_AA_picked_out_covary<-Pheno_AA_picked[c("V2",PCcols)]
+write.table(Pheno_EA_picked_out,paste("Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_",filename,".pheno",sep=""),quote=F,row.names=F,col.names = T)
+write.table(Pheno_AA_picked_out,paste("Z:/Data Analysis/Yu Fang/HRS/Phenotype/AA_",filename,".pheno",sep=""),quote=F,row.names=F,col.names = T)
+Pheno_EA_picked_out_covary<-Pheno_EA_picked[c("V2",PCcols,democols)]
+Pheno_AA_picked_out_covary<-Pheno_AA_picked[c("V2",PCcols,democols)]
 names(Pheno_EA_picked_out_covary)[1]="IID"
 names(Pheno_AA_picked_out_covary)[1]="IID"
-write.table(Pheno_EA_picked_out_covary,"Z:/Data Analysis/Yu Fang/HRS/Phenotype/Top10PC_EA.covary",quote=F,row.names=F,col.names = T)
-write.table(Pheno_AA_picked_out_covary,"Z:/Data Analysis/Yu Fang/HRS/Phenotype/Top10PC_AA.covary",quote=F,row.names=F,col.names = T)
+write.table(Pheno_EA_picked_out_covary,paste("Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_",filename,".covary",sep=""),quote=F,row.names=F,col.names = T)
+write.table(Pheno_AA_picked_out_covary,paste("Z:/Data Analysis/Yu Fang/HRS/Phenotype/AA_",filename,".covary",sep=""),quote=F,row.names=F,col.names = T)
 }
-PhenoPrep("neuroticism")
+#PhenoPrep("neuroticism")
+#PhenoPrep("CIDIDepression","CIDIDepression")
+#PhenoPrep(c("AnhedoniaSeverity","DysphoriaSeverity"),"CIDIADSeverity")
+PhenoPrep("Height","Height")
 
-#### base ####
+
+######## base ########
 # geno map
 genmap<-read.table("Z:/Data Analysis/Yu Fang/HRS/GeneImputed/HRS_auto.map")
-# read base
+# read base - mdd
 base_ds<-read.table("Z:/Data Analysis/Yu Fang/HRS/Public/pgc.mdd.2012-04/pgc.mdd.clump.2012-04.txt",header=T)
 base_col<-c("hg18chr","bp","snpid")
+# read base - height
+LangoAllen2010<-read.table("Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/GIANT_HEIGHT_LangoAllen2010_publicrelease_HapMapCeuFreq.txt",header=T)
+Wood2014<-read.table("Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/GIANT_HEIGHT_Wood_et_al_2014_publicrelease_HapMapCeuFreq.txt",header=T)
+Yang2012<-read.table("Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/GIANT_Yang2012Nature_publicrelease_HapMapCeuFreq_Height.txt",header=T)
+Randall2013MEN<-read.table("Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/GIANT_Randall2013PlosGenet_stage1_publicrelease_HapMapCeuFreq_HEIGHT_MEN_N.txt",header=T)
+Randall2013WOMEN<-read.table("Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/GIANT_Randall2013PlosGenet_stage1_publicrelease_HapMapCeuFreq_HEIGHT_WOMEN_N.txt",header=T)
+Berndt2013EXTREME<-read.table("Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/GIANT_EXTREME_HEIGHT_Stage1_Berndt2013_publicrelease_HapMapCeuFreq.txt",header=T)
+nrow(LangoAllen2010)
+nrow(Wood2014)
+nrow(Yang2012)
+nrow(Randall2013MEN)
+nrow(Randall2013WOMEN)
+nrow(Berndt2013EXTREME)
+
+#base_ds<-Randall2013MEN
+#base_ds<-Randall2013WOMEN
+base_ds<-Wood2014
+base_col<-c("MarkerName")
+#base_rspath<-"Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/Randall2013MEN.rs"
+#base_rspath<-"Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/Randall2013WOMEN.rs"
+base_rspath<-"Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/Wood2014.rs"
+
+## Prepare for lift, if necessary ##
 BasePrep=function(base_ds,base_col){
   base_ds$seq=seq(from=1,to=nrow(base_ds))
-  ped_ds=data.frame(Chromosome=base_ds[,paste(base_col[1])],chromstart=base_ds[,paste(base_col[2])]-1,chromend=base_ds[,paste(base_col[2])],snpid=base_ds[,paste(base_col[3])],seq=base_ds$seq)
-  ped_ds$Chromosome=paste("chr",ped_ds$Chromosome,sep="")
-  ped_ds$chromstart <- as.integer(ped_ds$chromstart)
-  ped_ds$chromend<- as.integer(ped_ds$chromend)
-  write.table(ped_ds,"Z:././././././Data Analysis/Yu Fang/HRS/Public/pgc.mdd.2012-04/mdd.ped",col.names=F,row.names=F,quote=F)
-  write.table(ped_ds$snpid,"Z:/Data Analysis/Yu Fang/HRS/Public/pgc.mdd.2012-04/mdd.rs",col.names = F,row.names=F,quote = F)
+  ped_ds=data.frame(snpid=base_ds[,paste(base_col[1])],seq=base_ds$seq)
+  #ped_ds=data.frame(Chromosome=base_ds[,paste(base_col[1])],chromstart=base_ds[,paste(base_col[2])]-1,chromend=base_ds[,paste(base_col[2])],snpid=base_ds[,paste(base_col[3])],seq=base_ds$seq)
+  #ped_ds$Chromosome=paste("chr",ped_ds$Chromosome,sep="")
+  #ped_ds$chromstart <- as.integer(ped_ds$chromstart)
+  #ped_ds$chromend<- as.integer(ped_ds$chromend)
+  #write.table(ped_ds,"Z:././././././Data Analysis/Yu Fang/HRS/Public/pgc.mdd.2012-04/mdd.ped",col.names=F,row.names=F,quote=F)
+  write.table(ped_ds$snpid,base_rspath,col.names = F,row.names=F,quote = F)
+  return(ped_ds)
 }
-BasePrep(base_ds,base_col)
-
-# pause: liftover ran in linux #
-
-# after lift or lift is not needed
-
+ped_ds=BasePrep(base_ds,base_col)
+## pause: liftover ran in linux ##
+## after lift or lift is not needed ##
 # lift_ds<-read.table("Z:/Data Analysis/Yu Fang/HRS/Public/pgc.mdd.2012-04/mdd_hg19.ped")
 # lift_cols<-c("snpid","hg18chr","bp","a1","a2","or","se","pval")
 # lifted<-T
 # new_cols<-c("SNP","CHR","BP","A1","A2","oR","SE","P")
 # outpath_ds<-"Z:/Data Analysis/Yu Fang/HRS/Public/pgc.mdd.2012-04/base_mdd.assoc"
-lift_ds<-read.table("Z:/Data Analysis/Yu Fang/HRS/Public/GPC-2.NEUROTICISM/GPC-2.NEUROTICISM.full.txt")
-lift_ds<-lift_ds[which(lift_ds$V10>0.02 & lift_ds$V10<0.98),]
-lift_cols<-c("V1","V2","V3","V4","V5","V6","V7","V8")
-lifted<-F
-new_cols<-c("SNP","CHR","BP","A1","A2","BETA","SE","P")
-outpath_ds<-"Z:/Data Analysis/Yu Fang/HRS/Public/GPC-2.NEUROTICISM/GPC_neuroticism.assoc"
 
+## save base file ##
+#lift_ds<-read.table("Z:/Data Analysis/Yu Fang/HRS/Public/GPC-2.NEUROTICISM/GPC-2.NEUROTICISM.full.txt")
+#lift_ds<-Wood2014
+#lift_ds<-read.table("Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/Randall2013MEN_lifted.rs")
+#lift_ds<-Randall2013MEN
+lift_ds<-Randall2013WOMEN
+#lift_ds<-lift_ds[which(lift_ds$V10>0.02 & lift_ds$V10<0.98),]
+#lift_cols<-c("V1","V2","V3","V4","V5","V6","V7","V8")
+#lift_cols<-c("MarkerName","Allele1","Allele2","b","SE","p")
+lift_cols<-c("MarkerName","A1","A2","BETA","SE.2gc","P.2gc")
+#new_cols<-c("SNP","A1","A2","BETA","SE","P")
+new_cols<-c("SNP","A1","A2","BETA","SE","P")
+#outpath_ds<-"Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/Height_Wood2014.assoc"
+#outpath_ds<-"Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/Height_Randall2013MEN.assoc"
+outpath_ds<-"Z:/Data Analysis/Yu Fang/HRS/Public/GIANT/Height_Randall2013WOMEN.assoc"
+lifted<-F
+needtoupper<-T
 
 LiftedPrep=function(lift_ds){
  if (lifted){
@@ -86,9 +134,14 @@ LiftedPrep=function(lift_ds){
  #  print(length(commonsnp))
   new_ds=new_ds[lift_cols]
   names(new_ds)=new_cols
+ if(needtoupper){
+  new_ds$A1<-toupper(lift_ds$A1)
+  new_ds$A2<-toupper(lift_ds$A2)
+ }
   write.table(new_ds,outpath_ds,quote=FALSE,row.names=FALSE,col.names=TRUE)
+ return(new_ds)
 }
-LiftedPrep(lift_ds)
+new_ds=LiftedPrep(lift_ds)
 
 
 
