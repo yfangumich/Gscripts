@@ -4,6 +4,9 @@ library(plyr)
 ## Phenotypes
 pheno<-read.spss("Z:/Data Analysis/Yu Fang/HRS/Phenotype/YuSrijanVars.sav",to.data.frame = TRUE)
 pheno$LOCAL_ID<-as.integer(as.character(pheno$LOCAL_ID))
+#### mental health ####
+pheno=pheno[c("hhidpn","LOCAL_ID","Age","Gender","Hispanic","Race","Education",
+              "Depression","anxiety","anger","extraversion","conscientiousness","agreeableness","openness")]
 #### CIDI ####
 CIDI=read.spss("Z:././././././Data Analysis/Yu Fang/HRS/Phenotype/MasterCIDI_3subscales.sav",to.data.frame = TRUE)
 CIDI=CIDI[c("hhidpn","CIDIDepression","dysphoriaEVER","anhedoniaEVER","DysphoriaSeverity","AnhedoniaSeverity","CIDISeverity")]
@@ -35,8 +38,8 @@ AnnoGenfamPheno<-merge(AnnoGenfam,pheno_use,by.x="local.id",by.y="LOCAL_ID")
 AnnoGenfamPheno_EA<-AnnoGenfamPheno[which(AnnoGenfamPheno$Race==unique(AnnoGenfamPheno$Race)[1]),]
 AnnoGenfamPheno_AA<-AnnoGenfamPheno[which(AnnoGenfamPheno$Race==unique(AnnoGenfamPheno$Race)[3]),]
 # pick pheno
-Pheno_EA_picked<-AnnoGenfamPheno_EA[which(!is.na(AnnoGenfamPheno_EA[,paste(targetpheno)])),]
-Pheno_AA_picked<-AnnoGenfamPheno_AA[which(!is.na(AnnoGenfamPheno_AA[,paste(targetpheno)])),]
+Pheno_EA_picked<-na.omit(AnnoGenfamPheno_EA[,c("V2",PCcols,democols,targetpheno)])
+Pheno_AA_picked<-na.omit(AnnoGenfamPheno_AA[,c("V2",PCcols,democols,targetpheno)])
 # output
 Pheno_EA_picked_out<-Pheno_EA_picked[c("V2",targetpheno)]
 Pheno_AA_picked_out<-Pheno_AA_picked[c("V2",targetpheno)]
@@ -51,12 +54,54 @@ names(Pheno_AA_picked_out_covary)[1]="IID"
 write.table(Pheno_EA_picked_out_covary,paste("Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_",filename,".covary",sep=""),quote=F,row.names=F,col.names = T)
 write.table(Pheno_AA_picked_out_covary,paste("Z:/Data Analysis/Yu Fang/HRS/Phenotype/AA_",filename,".covary",sep=""),quote=F,row.names=F,col.names = T)
 }
-#PhenoPrep("neuroticism")
+#PhenoPrep("neuroticism","neuroticism")
 #PhenoPrep("CIDIDepression","CIDIDepression")
 #PhenoPrep(c("AnhedoniaSeverity","DysphoriaSeverity"),"CIDIADSeverity")
-PhenoPrep("Height","Height")
+#PhenoPrep("Height","Height")
+PhenoPrep(c("Depression","anxiety","anger","extraversion","conscientiousness","agreeableness","openness"),"mental")
+
+######## pheno correlation ########
+Pheno_mental=read.table("Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_mental.pheno",header=T)
+Pheno_neuroticism=read.table("Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_neuroticism.pheno",header=T)
+Pheno_all=merge(Pheno_mental,Pheno_neuroticism,by="ID")
+Pheno_cor=Pheno_all[c(-1)]
+a=rcorr(as.matrix(Pheno_cor))
+df=merge(prof,Pheno_all,by.x="IID",by.y="ID")
+
+covariates <- "EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10,Age,Gender"
+covariates <- strsplit(covariates, split=",")[[1]]
+outcomes=c("Depression","anxiety","anger","extraversion","conscientiousness","agreeableness","openness")
+pheno.results<-data.frame(name=character(length(outcomes)),r2ratio=numeric(length(outcomes)),
+                          r2score=numeric(length(outcomes)),r2pheno=numeric(length(outcomes)),
+                          pscore=numeric(length(outcomes)),ppheno=numeric(length(outcomes)),
+                          estimatescore=numeric(length(outcomes)),estimatepheno=numeric(length(outcomes)))
+pheno.results$name<-as.character(pheno.results$name)
+for (i in 1:length(outcomes)){
+  outcome<-outcomes[i]
+  pheno.results$name[i]<-outcome
+  frm<-as.formula(paste(outcome,"~ ."))
+  model.full  <- glm(formula=frm, family="gaussian", data= df[,c(outcome,"SCORE","neuroticism", covariates)])
+  model.logit <- glm(formula=frm, family="gaussian", data = df[,c(outcome, "SCORE", covariates)])
+  model.null  <-  glm(formula=frm, family="gaussian", data = df[,c(outcome, covariates)])
+  r2full  <- 1-model.full$deviance/model.full$null.deviance
+  r2logit <- 1-model.logit$deviance/model.logit$null.deviance
+  r2null  <- 1-model.null$deviance/model.null$null.deviance
+  pheno.results$r2pheno[i]<-r2full - r2logit
+  pheno.results$r2score[i]<-r2logit - r2null
+  pheno.results$r2ratio[i]<-pheno.results$r2score[i] / (r2full - r2null)  
+  pheno.results$pscore[i]<-summary(model.full)$coefficients[2,4]
+  pheno.results$estimatescore[i]<-summary(model.full)$coefficients[2,1]
+  pheno.results$ppheno[i]<-summary(model.full)$coefficients[3,4]
+  pheno.results$estimatepheno[i]<-summary(model.full)$coefficients[3,1]
+}
+attach(pheno.results)
+write.table(pheno.results[order(r2ratio),],"Z:/Data Analysis/Yu Fang/HRS/PRSoutput/tmp.csv",col.names=T,row.names=F,quote=F,sep=",")
+score.results<-read.csv("Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-03-10_neuroticism_mental/PRSice_TOP_SCORES_ACROSS_PHENOTYPES.txt",header=T)
+pheno.results$ratio<-score.results$top.thresh.r2/pheno.results$r2
 
 
+m1<-glm(formula=frm, family="gaussian", data = df[,c(outcome,"SCORE","neuroticism", covariates)])
+summary(m1)
 ######## base ########
 # geno map
 genmap<-read.table("Z:/Data Analysis/Yu Fang/HRS/GeneImputed/HRS_auto.map")

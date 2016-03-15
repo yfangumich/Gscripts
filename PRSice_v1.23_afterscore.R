@@ -82,7 +82,7 @@ print.time <-  T
 cleanup <- T
 plinkpath <-  "./"
 remove.mhc <- F
-for.meta <- F
+for.meta <- T    # FY: want to get the coefficients
 plink.silent <- T
 allow.no.sex <- F
 
@@ -163,25 +163,35 @@ cat(" ################################# \n # \n #  Read in Command Line Argument
 ##### manually input the customized options ####
 
 # frequently changed
-base <- "Z:/Data Analysis/Yu Fang/HRS/Public/pgc.mdd.2012-04/base_mdd.assoc"
-#base <- "Z:/Data Analysis/Yu Fang/HRS/Public/GPC-2.NEUROTICISM/GPC_neuroticism.assoc"
+#base <- "Z:/Data Analysis/Yu Fang/HRS/Public/pgc.mdd.2012-04/base_mdd.assoc"
+base <- "Z:/Data Analysis/Yu Fang/HRS/Public/GPC-2.NEUROTICISM/GPC_neuroticism.assoc"
+#base <- "Z:/Data Analysis/Yu Fang/HRS/Publig/GIANT/Height_Wood2014.assoc"
 
-pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/AA_neuroticism.pheno"
+#pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_neuroticism.pheno"
 #pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_CIDISeverity.pheno"
-#pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/AA_CIDIDepression.pheno"
-#pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/AA_CIDIADSeverity.pheno"
+#pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_CIDIDepression.pheno"
+#pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_Height.pheno"
+pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_mental.pheno"
 
-target.phenotypes <- "neuroticism"
+#target.phenotypes <- "neuroticism"
 #target.phenotypes <- "CIDISeverity"
 #target.phenotypes <- "CIDIDepression"
-#target.phenotypes <- c("AnhedoniaSeverity","DysphoriaSeverity")
+#target.phenotypes <- "Height"
+target.phenotypes <- c("Depression","anxiety","anger","extraversion","conscientiousness","agreeableness","openness")
 
-target.phenotypes.binary <- F
+target.phenotypes.binary <- c(F,F,F,F,F,F,F)
 
-user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/Top10PC_AA.covary"
+#user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_Height.covary"
+#user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_neuroticism.covary"
+#user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_CIDIDepression.covary"
+user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_mental.covary"
 
-wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-01-27_mdd_neuroticism_AA"
-#wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-02-17_neuroticism_scores_pruned"
+#wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-02-29_height_height_EA_r2"
+#wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-03-07_neuroticism_neuroticism"
+#wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-03-08_neuroticism_CIDIDepression"
+wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-03-15_tmp"
+
+covariates <- "EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10,Age,Gender"
 
 # non-frequently changed
 plink <- "C:/Users/yfang/Documents/work/Gene/Software/plink-1.07-x86_64/plink"
@@ -202,10 +212,9 @@ score.at.1 <- F
 quantiles <- T
 print.time <- T
 covary <- T
-covariates <- "EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10,Age,Gender"
 cleanup <- F
 allow.no.sex <- T
-barchart.levels <- "0.00001, 0.0001, 0.001, 0.01, 0.1"
+barchart.levels <- "0.00001, 0.0001, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5"
 
 # manually input end
 
@@ -478,6 +487,7 @@ for(basePhen in 1:length(base.phenotypes.names)){
 	if(!multiple.target.phenotypes){
 	  p.out <- as.vector(1)
 	  r2.out <- as.vector(1)
+    r2full<-as.vector(1);r2null<-as.vector(1)
 	  nsnps <- as.vector(1)
 	  coefficient <- as.vector(1)
 	  s.err <- as.vector(1)
@@ -662,8 +672,11 @@ for(basePhen in 1:length(base.phenotypes.names)){
 	            coefficient[i]  <- summary(model.logit)$coefficients[2,1]
 	            s.err[i] <- summary(model.logit)$coefficients[2,2]
 	          }
-		      r2.out[i] <- (1 - (sum( (prof$V2-predict(model.logit))^2 ) / sum( (prof$V2-mean(prof$V2))^2 ) ) )  - (1 - ( sum( (prof$V2-predict(model.null))^2 ) / sum( (prof$V2-mean(prof$V2))^2 ) ) )  
-		    }
+		      #r2.out[i] <- (1 - (sum( (prof$V2-predict(model.logit))^2 ) / sum( (prof$V2-mean(prof$V2))^2 ) ) )  - (1 - ( sum( (prof$V2-predict(model.null))^2 ) / sum( (prof$V2-mean(prof$V2))^2 ) ) )  
+		      r2full[i] <- 1-model.logit$deviance/model.logit$null.deviance
+          r2null[i] <- 1-model.null$deviance/model.null$null.deviance
+		      r2.out[i] <- r2full[i] - r2null[i]
+	     }
 		    if(covary & !ext.phen){
 	          prof <- merge(x = prof, by.x = "IID", y = pcs, by.y = "IID")
 	          model.logit <- glm(PHENO ~ ., family="gaussian", data = prof[,c("PHENO", "SCORE", covariates)])
@@ -673,8 +686,11 @@ for(basePhen in 1:length(base.phenotypes.names)){
 	            coefficient[i]  <- summary(model.logit)$coefficients[2,1]
 	            s.err[i] <- summary(model.logit)$coefficients[2,2]
 	          }
-	         r2.out[i] <- (1 - ( sum( (prof$PHENO-predict(model.logit))^2 ) / sum( (prof$PHENO-mean(prof$PHENO))^2 ) ) )  - (1 - ( sum( (prof$PHENO-predict(model.null))^2 ) / sum( (prof$PHENO-mean(prof$PHENO))^2 ) ) ) 
-	        }
+	         #r2.out[i] <- (1 - ( sum( (prof$PHENO-predict(model.logit))^2 ) / sum( (prof$PHENO-mean(prof$PHENO))^2 ) ) )  - (1 - ( sum( (prof$PHENO-predict(model.null))^2 ) / sum( (prof$PHENO-mean(prof$PHENO))^2 ) ) ) 
+	         r2full[i] <- 1-model.logit$deviance/model.logit$null.deviance
+	         r2null[i] <- 1-model.null$deviance/model.null$null.deviance
+	         r2.out[i] <- r2full[i] - r2null[i]
+		    }
 	        if(!covary & ext.phen){
 	          p.out[i]  <- summary(with(prof, glm(V2  ~ SCORE, family="gaussian")))$coefficients[2,4]
 	          if(for.meta){
@@ -736,6 +752,7 @@ for(basePhen in 1:length(base.phenotypes.names)){
 	    binary.target <- target.phenotypes.binary[k]
 	    p.out <- as.vector(1)
 	    r2.out <- as.vector(1)
+	  	r2full<-as.vector(1);r2null<-as.vector(1)
 	    nsnps <- as.vector(1)
 	    coefficient <- as.vector(1)
 	    s.err <- as.vector(1)
@@ -802,12 +819,26 @@ for(basePhen in 1:length(base.phenotypes.names)){
                 prof <- prof[!is.na(prof$V2) ,]
 	            model.logit <- glm(V2 ~., family="binomial", data = prof[,c("V2","SCORE", covariates)])
 	            model.null <-  glm(V2 ~., family="binomial", data = prof[,c("V2", covariates)])
+              
+	            # patch: sometimes want to correct for gender and/or age
+	           #   ds=prof[,c("V2", "SCORE", covariates)]
+	           # 	model.pheno<-glm(V2 ~ Gender+Age, family="binomial",data=ds)
+	           # 	model.res<-residuals(model.pheno)
+	           # 	cov.new=c("EV1","EV2","EV3","EV4","EV5","EV6","EV7","EV8","EV9","EV10")
+	           # 	ds.new=prof[,c("SCORE", cov.new)]
+	           # 	ds.new$V2=model.res
+	           # 	model.logit <- glm(V2  ~ ., family="gaussian", data = ds.new)
+	           # 	model.null <-  glm(V2  ~ ., family="gaussian", data = ds.new[,c("V2", cov.new)])
+              
 	            p.out[i]  <- summary(model.logit)$coefficients[2,4]
 	            if(for.meta){
 	              coefficient[i]  <- summary(model.logit)$coefficients[2,1]
 	              s.err[i] <- summary(model.logit)$coefficients[2,2]
 	            }
-		        r2.out[i] <- NagelkerkeR2(model.logit)$R2 - NagelkerkeR2(model.null)$R2  
+	            r2full[i] <- NagelkerkeR2(model.logit)$R2
+	            r2null[i] <- NagelkerkeR2(model.null)$R2
+	          
+		        r2.out[i] <- r2full[i] - r2null[i] 
 	          }
 	          if(!covary){
                 prof <- prof[prof$V2 != "" ,]
@@ -885,13 +916,28 @@ for(basePhen in 1:length(base.phenotypes.names)){
                 prof <- prof[!is.na(prof$V2) ,]
 		        model.logit <- glm(V2  ~ ., family="gaussian", data = prof[,c("V2", "SCORE", covariates)])
 		        model.null <-  glm(V2  ~ ., family="gaussian", data = prof[,c("V2", covariates)])
-		        p.out[i]  <- summary(model.logit)$coefficients[2,4]
+ 
+  # patch: sometimes want to correct for gender and/or age
+#	ds=prof[,c("V2", "SCORE", covariates)]
+#	model.pheno<-glm(V2 ~ Gender+Age, family="gaussian",data=ds)
+#	model.res<-residuals(model.pheno)
+#	cov.new=c("EV1","EV2","EV3","EV4","EV5","EV6","EV7","EV8","EV9","EV10")
+#	ds.new=prof[,c("SCORE", cov.new)]
+#	ds.new$V2=model.res
+#	model.logit <- glm(V2  ~ ., family="gaussian", data = ds.new)
+#	model.null <-  glm(V2  ~ ., family="gaussian", data = ds.new[,c("V2", cov.new)])
+
+  	        p.out[i]  <- summary(model.logit)$coefficients[2,4]
 	            if(for.meta){
 	              coefficient[i]  <- summary(model.logit)$coefficients[2,1]
 	              s.err[i] <- summary(model.logit)$coefficients[2,2]
 	            }
-		        r2.out[i] <- (1 - (sum( (prof$V2-predict(model.logit))^2 ) / sum( (prof$V2-mean(prof$V2))^2 ) ) )  - (1 - ( sum( (prof$V2-predict(model.null))^2 ) / sum( (prof$V2-mean(prof$V2))^2 ) ) )  
-		      }
+		        #r2.out[i] <- (1 - (sum( (prof$V2-predict(model.logit))^2 ) / sum( (prof$V2-mean(prof$V2))^2 ) ) )  - (1 - ( sum( (prof$V2-predict(model.null))^2 ) / sum( (prof$V2-mean(prof$V2))^2 ) ) )  
+		        r2full[i] <- 1-model.logit$deviance/model.logit$null.deviance
+		        r2null[i] <- 1-model.null$deviance/model.null$null.deviance
+		        r2.out[i] <- r2full[i] - r2null[i]
+            # above two are the same
+	       }
 	          if(!covary){
                 prof <- prof[prof$V2 != "" ,]
                 prof <- prof[!is.na(prof$V2) ,]
@@ -900,7 +946,10 @@ for(basePhen in 1:length(base.phenotypes.names)){
 	              coefficient[i]  <- summary(with(prof, glm(V2  ~ SCORE, family="gaussian")))$coefficients[2,1]
 	              s.err[i] <- summary(with(prof, glm(V2  ~ SCORE, family="gaussian")))$coefficients[2,2]
 	            }
-	            r2.out[i] <-  1 - (sum( (prof$V2-predict(with(prof, glm(V2 ~ SCORE, family="gaussian"))))^2 )/sum( (prof$V2-mean(prof$V2))^2))   			
+	            #r2.out[i] <-  1 - (sum( (prof$V2-predict(with(prof, glm(V2 ~ SCORE, family="gaussian"))))^2 )/sum( (prof$V2-mean(prof$V2))^2)) 
+	            r2full[i] <- 1-model.logit$deviance/model.logit$null.deviance
+	            r2null[i] <- 1-model.null$deviance/model.null$null.deviance
+	            r2.out[i] <- r2full[i] - r2null[i]
 	          }
 	        }
 	        prof.red <- prof[,c("IID","SCORE")]
@@ -2313,6 +2362,8 @@ base.gwas <- base.gwas[base.gwas$A1 == targ.gwas$A1 | base.gwas$A1 == targ.gwas$
 high.res <- slower*sinc^(0:log(supper/slower,sinc))
 pval.out <- as.vector(1)
 r2.out <- as.vector(1)
+r2full<-as.vector(1);
+r2null<-as.vector(1)
 nsnps <- as.vector(1)
 
 high.res <- c(high.res, barchart.levels)
@@ -2325,6 +2376,8 @@ for(i in 1:length(high.res)){
 #  pval.out[i] <- grs.summary(w = base.gwas.temp$BETA, b = targ.gwas.temp$BETA, s = targ.gwas.temp$SE, n = size.targ)$pval
   pval.out[i] <- pnorm(abs(grs.summary(w = base.gwas.temp$BETA, b = targ.gwas.temp$BETA, s = targ.gwas.temp$SE, n = size.targ)$ahat/ grs.summary(w = base.gwas.temp$BETA, b = targ.gwas.temp$BETA, s = targ.gwas.temp$SE, n = size.targ)$aSE), lower.tail = F)
   r2.out[i] <- grs.summary(w = base.gwas.temp$BETA, b = targ.gwas.temp$BETA, s = targ.gwas.temp$SE, n = size.targ)$R2rs
+  r2full[i] <- grs.summary(w = base.gwas.temp$BETA, b = targ.gwas.temp$BETA, s = targ.gwas.temp$SE, n = size.targ)$R2rs
+  r2null[i] <- grs.summary(w = base.gwas.temp$BETA, b = targ.gwas.temp$BETA, s = targ.gwas.temp$SE, n = size.targ)$R2rs
   nsnps[i] <- dim(base.gwas.temp)[1]
 }
 
