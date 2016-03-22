@@ -164,34 +164,39 @@ cat(" ################################# \n # \n #  Read in Command Line Argument
 
 # frequently changed
 #base <- "Z:/Data Analysis/Yu Fang/HRS/Public/pgc.mdd.2012-04/base_mdd.assoc"
-base <- "Z:/Data Analysis/Yu Fang/HRS/Public/GPC-2.NEUROTICISM/GPC_neuroticism.assoc"
+#base <- "Z:/Data Analysis/Yu Fang/HRS/Public/GPC-2.NEUROTICISM/GPC_neuroticism.assoc"
 #base <- "Z:/Data Analysis/Yu Fang/HRS/Publig/GIANT/Height_Wood2014.assoc"
+base <- "Z:/Data Analysis/Yu Fang/HRS/Public/HanWomenMDD/HanWomenMDDSep2015_use.assoc"
 
 #pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_neuroticism.pheno"
 #pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_CIDISeverity.pheno"
 #pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_CIDIDepression.pheno"
 #pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_Height.pheno"
-pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_mental.pheno"
+#pheno.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_mental.pheno"
 
 #target.phenotypes <- "neuroticism"
 #target.phenotypes <- "CIDISeverity"
 #target.phenotypes <- "CIDIDepression"
 #target.phenotypes <- "Height"
-target.phenotypes <- c("Depression","anxiety","anger","extraversion","conscientiousness","agreeableness","openness")
+#target.phenotypes <- c("Depression","anxiety","anger","extraversion","conscientiousness","agreeableness","openness")
+#target.phenotypes <- "Depression"
 
-target.phenotypes.binary <- c(F,F,F,F,F,F,F)
+#target.phenotypes.binary <- c(F,F,F,F,F,F,F)
+target.phenotypes.binary <- T
 
 #user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_Height.covary"
 #user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_neuroticism.covary"
-#user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_CIDIDepression.covary"
-user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_mental.covary"
+user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_CIDIDepression.covary"
+#user.covariate.file <- "Z:/Data Analysis/Yu Fang/HRS/Phenotype/EA_mental.covary"
 
 #wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-02-29_height_height_EA_r2"
 #wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-03-07_neuroticism_neuroticism"
 #wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-03-08_neuroticism_CIDIDepression"
-wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-03-15_tmp"
+wd <- "Z:/Data Analysis/Yu Fang/HRS/PRSoutput/2016-03-22_mdd_mdd"
 
+# non-frequently changed but need to pay attention
 covariates <- "EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10,Age,Gender"
+barchart.levels <- "0.00001, 0.0001, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5"
 
 # non-frequently changed
 plink <- "C:/Users/yfang/Documents/work/Gene/Software/plink-1.07-x86_64/plink"
@@ -214,7 +219,7 @@ print.time <- T
 covary <- T
 cleanup <- F
 allow.no.sex <- T
-barchart.levels <- "0.00001, 0.0001, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5"
+
 
 # manually input end
 
